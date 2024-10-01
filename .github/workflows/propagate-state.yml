@@ -1,0 +1,102 @@
+name: Sync In-Class Materials and Update Roster
+
+on:
+  # schedule:
+  #   # Run daily
+  #   - cron: "0 0 * * *"
+  # FIXME: test out before running it everytime
+  # push:
+  #   branches: [master]
+  #   paths:
+  #     - "exercises/**"
+  #     - "homeworks/**"
+  workflow_dispatch:
+
+jobs:
+  sync_and_update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install PyGithub requests
+
+      - name: Update student list and sync repos
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          CLASSROOM_TOKEN: ${{ secrets.CLASSROOM_TOKEN }}
+          ORG_NAME: "fmi-fp-lab"
+          COURSE_NAME: "fmi-fp-lab-2024-25"
+          CLASSROOM_NAME: "fmi-fp-lab-2024-25-classroom"
+        run: |
+          python - <<PYTHON
+          import os
+          import requests
+          from github import Github
+
+          # Env vars
+          gh_token = os.environ["GH_TOKEN"]
+          classroom_token = os.environ["CLASSROOM_TOKEN"]
+          org_name = os.environ["ORG_NAME"]
+          course_name = os.environ["COURSE_NAME"]
+          classroom_name = os.environ["CLASSROOM_NAME"]
+
+          # GitHub Classroom API endpoint
+          api_url = "https://classroom.github.com/api/v1"
+
+          # Fetch classroom ID
+          classrooms = requests.get(
+            f"{api_url}/classrooms",
+            headers={
+              "Authorization": f"Bearer {classroom_token}"
+            }
+          )
+          print("Fetched classrooms...")
+          classroom_id = next(c["id"] for c in classrooms.json() if c["name"] == classroom_name)
+          print("Extracted classroom_id...")
+
+          # Fetch student list
+          roster = requests.get(
+            f"{api_url}/classrooms/{classroom_id}/students",
+            headers={
+              "Authorization": f"Bearer {classroom_token}"
+            }
+          )
+          print("Fetches roster...")
+
+          # Update student_repos.txt
+          g = Github(gh_token)
+          org = g.get_organization(org_name)
+          print("Extracted organization...")
+
+          with open(".github/student_repos.txt", "w") as f:
+            for student in roster.json():
+              username = student["github_username"]
+              print(f"Checking student {username}...")
+              repo_name = f"{org_name}/{course_name}-tasks-{username}"
+              f.write(f"{repo_name}\n")
+
+              # Ensure the student has a fork of the main repo
+              try:
+                org.get_repo(repo_name)
+                print(f"Student repo {username} found...")
+              except:
+                print(f"Student repo {username} not found, forking...")
+                main_repo = org.get_repo(course_name)
+                main_repo.create_fork(org=org, name=repo_name)
+                print(f"Student repo {username} created...")
+          print("Saved student repos...")
+
+          # Sync updates to student repos
+          student_repos = open(".github/student_repos.txt").read().splitlines()
+          for repo in student_repos:
+            print("Syncing student repo {repo}...")
+            os.system(f"git push https://x-access-token:{gh_token}@github.com/{repo}.git HEAD:upstream --force")
+          print("Synced student repos...")
+          PYTHON
