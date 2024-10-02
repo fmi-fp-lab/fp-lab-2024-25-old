@@ -42,15 +42,15 @@ module Intro where
 --     - Defining Datatypes To Represent Problems
 --     - Defining Functions To Create New Data From Old
 
--- data ImaLiGo = ImaGo Int | NqmaGo
---
--- data Animal
---  = Cat Colour
---  | Dog Breed
---
--- data Colour
---
--- data Breed
+data ImaLiGo = ImaGo Int | NqmaGo
+
+data Animal
+ = Cat Colour
+ | Dog Breed
+
+data Colour
+
+data Breed
 
 --
 -- garbage collection
@@ -62,7 +62,7 @@ module Intro where
 -- lazy - a boon and a curse
 -- no arbitrary IO
 -- no mutations
--- value/"pipeline" oriented (give bash example maybe)
+-- value/"pipeline" oriented
 -- concise, very modular
 
 -- all in all -
@@ -105,16 +105,23 @@ module Intro where
 -- function definition
 -- type declarations
 
--- x :: Integer
 -- x :: Int
 -- x = 5
 
-{-
+-- bool isBiggerThan(int,int);
 isBiggerThan :: Int -> Int -> Bool
+-- ..(int x, int y){ return x > y }
 isBiggerThan x y = x > y
 
 add42 :: Int -> Int
 add42 x = x + 42
+
+-- b :: Bool
+-- b = True
+
+-- void x = 1 > 2 ? 5 : 6;
+takovata :: Int
+takovata = if 1 > 2 then undefined else 6
 
 -- base types
 -- if
@@ -149,16 +156,22 @@ fun3 b c =
     else 'a'
 
 -- add type signature
+fun4 :: Int -> Char -> Int -> Char
 fun4 x c y =
-  fun3
-    (fun2 (fun1 x) == y)
-    c
+  fun3 (fun2 (fun1 x) == y) c
+
+-- bool f(int a, int b, char c) { ... }
+-- f(1, 2, 'c')
+--
+-- Scheme - (f 1 2 'c')
+-- Haskell - f 1 2 'c'
 
 -- evaluate code in >>>
 
--- >>> 5 + 15
--- 20
+-- >>> 5 + 15 + 100
+-- 120
 
+{-
 -- TODO: show
 -- if-then-else (is an expression)
 -- numeric operations
