@@ -22,8 +22,6 @@ module ADTs where
 -- * guards
 -- * remind about sections
 
-data Bool' = True' | False'
-
 ----------------------------------------------
 -- RPS (Rock, Paper, Scissors) and Booleans --
 ----------------------------------------------
@@ -51,15 +49,7 @@ beats = undefined
 -- >>> next Rock
 -- Paper
 next :: RPS -> RPS
-next Rock = Paper
-next Paper = Scissors
-next Scissors = Rock
-
-next' :: RPS -> RPS
-next' x = case x of
-  Rock -> Paper
-  Paper -> Scissors
-  Scissors -> Rock
+next = undefined
 
 -- TASK
 -- Define what it means for two RPS values to be equal
@@ -90,26 +80,38 @@ beats' = undefined
 data Point = MkPoint Integer Integer
   deriving (Show)
 
-defaultPoint :: Point
-defaultPoint = MkPoint 0 0
-
 -- |
 -- Check if a point is in the first quadrant (both x and y are positive)
 isInFirstQuadrant :: Point -> Bool
-isInFirstQuadrant = undefined
+isInFirstQuadrant (MkPoint x y) = x > 0 && y > 0
+
+inWhichQuadrantIsIn :: Point -> Integer
+inWhichQuadrantIsIn (MkPoint x y) = if x > 0 && y > 0 then 1 else undefined
+
+inWhichQuadrantIsIn' :: Point -> Integer
+inWhichQuadrantIsIn' (MkPoint x y)
+  | x >= 0 && y >= 0 = 1
+  | x  < 0 && y >= 0 = 2
+  | x  < 0 && y  < 0 = 3
+  | x >= 0 && y  < 0 = 4
+  | otherwise = error "the universe has stopped working"
 
 -- |
 -- Invert a point by swapping the signs of x and y
 invert :: Point -> Point
-invert = undefined
+invert (MkPoint x y) = MkPoint (-x) (-y)
 
 ----------------------------------------
 -- Natural Numbers (Peano Arithmetic) --
 ----------------------------------------
 
 -- Encoding for natural numbers using Peano arithmetic
-data Nat
+data Nat = Zero | Succ Nat
   deriving (Show)
+
+-- 2
+-- Succ (Succ Zero)
+-- 1+ 1+ 0
 
 -- TASK
 -- Convert an Integer to Nat
@@ -117,7 +119,10 @@ data Nat
 -- >>> integerToNat 3
 -- Succ (Succ (Succ Zero))
 integerToNat :: Integer -> Nat
-integerToNat = undefined
+integerToNat x =
+  if x == 0
+  then Zero
+  else Succ (integerToNat (x - 1))
 
 -- TASK
 -- Convert a Nat back to an Integer
@@ -125,7 +130,8 @@ integerToNat = undefined
 -- >>> natToInteger (Succ (Succ Zero))
 -- 2
 natToInteger :: Nat -> Integer
-natToInteger = undefined
+natToInteger Zero = 0
+natToInteger (Succ x) = 1 + natToInteger x
 
 -- TASK
 -- Add two Nats
@@ -133,7 +139,15 @@ natToInteger = undefined
 -- >>> addNat (Succ Zero) (Succ Zero)
 -- Succ (Succ Zero)
 addNat :: Nat -> Nat -> Nat
-addNat = undefined
+addNat Zero n2 = n2
+addNat (Succ n1) n2 = Succ (addNat n1 n2)
+
+-- addNat (Succ (Succ Zero))    (Succ Zero)
+--              ^^^^^^^^^^^ n1  ^^^^^^^^^^^ n2 
+-- Succ (addNat (Succ Zero) (Succ Zero))
+--                    ^^^ n1 ^^^^^^^^^ n2
+-- Succ (Succ (addNat Zero (Succ Zero)))
+-- Succ (Succ (Succ Zero))
 
 -- TASK
 -- Multiply two Nats
@@ -245,20 +259,9 @@ data CardRelation
   deriving (Show)
 
 -- TASK
--- Calculate whether two cards have the same suit
--- Use the CardRelation type to express the result
-sameSuit :: Card -> Card -> CardRelation
-sameSuit = undefined
-
--- TASK
 -- Given a contract, calculate how two cards relate
 relateCards :: Contract -> Card -> Card -> CardRelation
 relateCards = undefined
-
--- TASK
--- Return the stronger card according to its power in a given contract
-maximumCard :: Contract -> Card -> Card -> Card
-maximumCard = undefined
 
 -- TASK
 -- Given a contract and two cards, return the winning card
@@ -266,7 +269,7 @@ maximumCard = undefined
 fight :: Contract -> Card -> Card -> Card
 fight = undefined
 
--- Data type for a trick, consisting of four cards
+-- Data type for a trick (игра, разигравка, ръка, рунд), consisting of four cards
 data Trick
   deriving (Show)
 
