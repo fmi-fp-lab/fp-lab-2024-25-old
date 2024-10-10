@@ -14,8 +14,9 @@
 {-# OPTIONS_GHC -fwarn-unused-matches #-}
 
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
--- disable some hints that spoil the easy tasks
 {-# HLINT ignore "Use even" #-}
+{-# HLINT ignore "Use guards" #-}
+-- disable some hints that spoil the easy tasks
 
 -- }}}
 
@@ -41,16 +42,6 @@ module Intro where
 --   (Typed) Functional Programming is
 --     - Defining Datatypes To Represent Problems
 --     - Defining Functions To Create New Data From Old
-
-data ImaLiGo = ImaGo Int | NqmaGo
-
-data Animal
- = Cat Colour
- | Dog Breed
-
-data Colour
-
-data Breed
 
 --
 -- garbage collection
@@ -219,7 +210,10 @@ fib = undefined
 -- 42
 
 myPlus :: Integer -> Integer -> Integer
-myPlus n m = undefined
+myPlus n m =
+  if n == 0
+    then m
+    else succ (myPlus (n - 1) m)
 
 -- same as above, implement multiplication on natural numbers recursively, using addition instead of succ
 -- EXAMPLES
@@ -232,7 +226,10 @@ myPlus n m = undefined
 -- >>> myMult 1 42
 -- 42
 myMult :: Integer -> Integer -> Integer
-myMult n m = undefined
+myMult n m =
+  if n == 0
+    then 0
+    else myPlus m (myMult (n - 1) m)
 
 -- Implement "fast exponentiation".
 -- This uses the following property:
@@ -248,7 +245,13 @@ myMult n m = undefined
 -- >>> fastPow 2 6
 -- 64
 fastPow :: Integer -> Integer -> Integer
-fastPow = undefined
+fastPow x n =
+  if n == 0
+    then 1
+    else
+      if even n
+        then fastPow (x * x) (n `div` 2)
+        else x * fastPow x (n - 1)
 
 -- Define two mutually recursive functions which check whether a number is even or odd.
 -- Assume that the input is non-negative.
@@ -267,10 +270,30 @@ fastPow = undefined
 -- True
 
 isEven :: Integer -> Bool
-isEven x = rem x 2 == 0
+isEven n =
+  (n == 0) || ((n /= 1) && isOdd (n - 1))
+
+-- or the easier to understand
+-- isEven n =
+--   if n == 0
+--     then True
+--     else
+--       if n == 1
+--         then False
+--         else isOdd (n - 1)
 
 isOdd :: Integer -> Bool
-isOdd x = not (isEven x)
+isOdd n =
+  (n == 1) || ((n /= 0) && isEven (n - 1))
+
+-- or the easier to understand
+-- isOdd n =
+--   if n == 0
+--     then False
+--     else
+--       if n == 1
+--         then True
+--         else isEven (n - 1)
 
 -- Define a function to check whether a given Integer is a prime number.
 -- Assume that the input is non-negative.
@@ -320,6 +343,19 @@ isOdd x = not (isEven x)
 -- True
 
 isPrime :: Integer -> Bool
-isPrime n = undefined
+isPrime n = not (anyDividesInRange 2 (n - 1))
+  where
+    divides x y = y `rem` x == 0
+    anyDividesInRange a b =
+      (a <= b) && ((a `divides` n) || anyDividesInRange (succ a) b)
+
+-- or the easier to understand
+-- anyDividesInRange a b =
+--   if a > b
+--   then False
+--   else
+--    if a `divides` n
+--    then True
+--    else anyDividesInRange (succ a) b
 
 -- vim: foldmethod=marker:
